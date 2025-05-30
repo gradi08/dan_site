@@ -58,3 +58,9 @@ setInterval(() => {
   index = (index + 1) % slides.length;
   showSlide(index);
 }, 3000);
+
+
+document.getElementById('hamburger').onclick = function() {
+        const navLinks = document.getElementById('nav-links');
+        navLinks.classList.toggle('active');
+    };
