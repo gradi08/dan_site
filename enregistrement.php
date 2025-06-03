@@ -2,7 +2,10 @@
 $m = null;
 // $m ? $_GET['m'] : null;
 if (isset($_GET['m'])) {
-    $m = 'jn,g,fn,n,;dfn;n,;n;,';
+    $m = True;
+}
+if (isset($_GET['t'])) {
+  $t = True;
 }
 // var_dump($_GET['m']);
 
@@ -26,6 +29,9 @@ if (isset($_GET['m'])) {
       <div class="form-group">
         <input type="email" name="email" placeholder="Adresse e-mail" required>
         <div class="error-message" id="error-email">Email invalide</div>
+        <?php if($t):?>
+         <div style="color:red"><?=$_GET['t'] ?></div> 
+        <?php endif ?>
       </div>
       <div class="form-group">
         <input type="password" name="password" placeholder="Mot de passe" required>

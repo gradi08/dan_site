@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: connexion.php');
             exit;
         } else {
-            echo "Email déjà utilisé.";
+            header('Location: enregistrement.php?t=Email déjà utilisé');
         }
     } else {
         echo "Tous les champs sont obligatoires.";

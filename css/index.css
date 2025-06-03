@@ -210,3 +210,46 @@ footer {
     margin: 2rem 1rem;
   }
 }
+.profile-menu {
+position: relative;
+}
+
+.profile-link {
+text-decoration: none;
+color: #333;
+font-weight: 500;
+cursor: pointer;
+position: relative;
+}
+
+.profile-link:hover {
+color: #2b6777;
+}
+
+.dropdown {
+display: none;
+position: absolute;
+top: 120%;
+right: 0;
+background: white;
+padding: 1rem;
+border-radius: 8px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+min-width: 200px;
+z-index: 999;
+}
+
+.dropdown a {
+display: block;
+color: #333;
+text-decoration: none;
+margin-top: 0.5rem;
+}
+
+.dropdown a:hover {
+color: #2b6777;
+}
+
+.profile-menu:hover .dropdown {
+display: block;
+}
