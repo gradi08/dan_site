@@ -2,32 +2,7 @@
 session_start();
 require 'includes/db.php'; // Assurez-vous que ce fichier contient la connexion à la base de données
 ?>
-<?php include_once 'public/navbar.php';    ?>
-
-  <header>
-    <div class="logo">VideGrenier+</div>
-    <nav>
-      <div class="hamburger" id="hamburger">&#9776;</div>
-      <div class="nav-links" id="nav-links">
-        <a href="#">Accueil</a>
-        <a href="categorie.php">Catégories</a>
-        <?php if (isset($_SESSION['user'])): ?>
-          <div class="profile-menu">
-            <a href="#" class="profile-link">Profil ▼</a>
-            <div class="dropdown">
-              <p><strong><?= htmlspecialchars($_SESSION['user']['nom'] ?? 'Utilisateur') ?></strong></p>
-              <p><strong><?= htmlspecialchars($_SESSION['user']['email'] ?? 'Email non défini') ?></strong></p>
-              <a href="ajouter-produit.php?">Tableau de bord</a>
-              <a href="logout.php">Déconnexion</a>
-            </div>
-          </div>
-        <?php else: ?>
-          <a href="connexion.php">Connexion</a>
-        <?php endif; ?>
-        <a href="#">Vendre</a>
-      </div>
-    </nav>
-  </header>
+<?php include_once 'public/navbar.php';?>
 
   <section class="hero">
     <h1>Donnez une nouvelle vie à vos objets inutilisés</h1>
