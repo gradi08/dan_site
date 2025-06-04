@@ -1,17 +1,9 @@
-<?php session_start();
-  // var_dump($_SESSION['user']['email']);
-  // exit();
+<?php 
+session_start();
+require 'includes/db.php'; // Assurez-vous que ce fichier contient la connexion à la base de données
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VideGrenier+ | Donnez une nouvelle vie à vos objets</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index.css">
-</head>
-<body>
+<?php include_once 'public/navbar.php';    ?>
+
   <header>
     <div class="logo">VideGrenier+</div>
     <nav>
@@ -25,7 +17,7 @@
             <div class="dropdown">
               <p><strong><?= htmlspecialchars($_SESSION['user']['nom'] ?? 'Utilisateur') ?></strong></p>
               <p><strong><?= htmlspecialchars($_SESSION['user']['email'] ?? 'Email non défini') ?></strong></p>
-              <a href="dashboard.php">Tableau de bord</a>
+              <a href="ajouter-produit.php?">Tableau de bord</a>
               <a href="logout.php">Déconnexion</a>
             </div>
           </div>
@@ -79,23 +71,5 @@
     <button>Déposer une annonce</button>
   </section>
 
-  <footer>
-    © 2025 VideGrenier+. Tous droits réservés.
-  </footer>
 
-  <script>
-    const hamburger = document.getElementById('hamburger');
-    const navLinks = document.getElementById('nav-links');
-
-    hamburger.onclick = () => {
-      navLinks.classList.toggle('active');
-    };
-
-    document.querySelectorAll('#nav-links a').forEach(link => {
-      link.onclick = () => {
-        navLinks.classList.remove('active');
-      };
-    });
-  </script>
-</body>
-</html>
+<?php include_once 'public/footer.php'; ?>

@@ -11,9 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
-    if ($user && password_verify($password, $user['password'])) {
+    if ($user && password_verify($password, $user['mot_de_passe'])) {
         $_SESSION['user'] = [
-            'nom' => $user['username'],
+            'id' => $user['id'],
+            'nom' => $user['nom'],
             'email' => $user['email']
         ];
         header('Location: index.php');

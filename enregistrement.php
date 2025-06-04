@@ -1,13 +1,12 @@
 <?php
 $m = null;
-// $m ? $_GET['m'] : null;
+$t = null;
 if (isset($_GET['m'])) {
     $m = True;
 }
 if (isset($_GET['t'])) {
   $t = True;
 }
-// var_dump($_GET['m']);
 
 ?>
 <!DOCTYPE html>

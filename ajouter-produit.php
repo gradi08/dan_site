@@ -1,137 +1,73 @@
 <?php
-require 'includes/db.php';
+require_once 'includes/auth.php';
+require_once 'includes/db.php';
+#var_dump($_SESSION['user']['id']);
 
 $message = "";
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $nom = htmlspecialchars($_POST['nom']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $titre = trim($_POST['titre']);
+    $description = trim($_POST['description']);
     $prix = floatval($_POST['prix']);
-    $categorie = htmlspecialchars($_POST['categorie']);
+    $categorie_id = intval($_POST['categorie']);
+    $user_id = $_SESSION['user']['id'];
 
-    // Upload de l'image
-    if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
-        $dossier = "img/";
-        if (!is_dir($dossier)) mkdir($dossier); // Crée le dossier si inexistant
+    // Vérifier que tous les champs sont remplis
+    if (!empty($titre) && !empty($description) && $prix > 0 && $categorie_id && isset($_FILES['image'])) {
+        // Traitement de l’image
+        $image = $_FILES['image'];
+        $image_name = time() . "_" . basename($image['name']);
+        $image_path = 'img/' . $image_name;
 
-        $imageNom = basename($_FILES['image']['name']);
-        $chemin = $dossier . $imageNom;
+        if (move_uploaded_file($image['tmp_name'], $image_path)) {
+            // Insertion dans la base de données
+            $stmt = $pdo->prepare("INSERT INTO articles (titre, description, prix, categorie_id, image, user_id, statut, date_creation)
+                                   VALUES (?, ?, ?, ?, ?, ?, 'non_publie', NOW())");
+            $stmt->execute([$titre, $description, $prix, $categorie_id, $image_name, $user_id]);
 
-        if (move_uploaded_file($_FILES['image']['tmp_name'], $chemin)) {
-            $stmt = $pdo->prepare("INSERT INTO produits (nom, prix, image, categorie) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$nom, $prix, $chemin, $categorie]);
-            $message = "✅ Produit ajouté avec succès.";
+            $message = "Article ajouté avec succès.";
         } else {
-            $message = "❌ Erreur lors de l’upload de l’image.";
+            $message = "Erreur lors de l’upload de l’image.";
         }
     } else {
-        $message = "❗ Veuillez sélectionner une image valide.";
+        $message = "Tous les champs sont obligatoires.";
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Ajouter un produit</title>
-    <link rel="stylesheet" href="css/index.css">
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 2rem;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #333;
-        }
-        form {
-            max-width: 500px;
-            margin: auto;
-            background: #fff;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-        label {
-            display: block;
-            margin-top: 1rem;
-            font-weight: bold;
-            color: #444;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            transition: border-color 0.3s;
-        }
-        input:focus, select:focus {
-            border-color: #007BFF;
-            outline: none;
-        }
-        button {
-            margin-top: 1.5rem;
-            width: 100%;
-            padding: 12px;
-            background: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-        .message {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            padding: 10px;
-            border-radius: 8px;
-            color: #155724;
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-        }
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-    </style>
-</head>
-<body>
-    <h2>Ajouter un produit</h2>
 
-    <?php if ($message): ?>
-        <div class="message <?= str_contains($message, '❌') || str_contains($message, '❗') ? 'error' : '' ?>">
-            <?= $message ?>
-        </div>
-    <?php endif; ?>
+<?php include_once 'public/navbar.php'; ?>
 
-    <form method="POST" enctype="multipart/form-data">
-        <label>Nom du produit :</label>
-        <input type="text" name="nom" required>
+<h2>Ajouter un nouvel article</h2>
 
-        <label>Prix (€) :</label>
-        <input type="number" name="prix" step="0.01" required>
+<?php if ($message): ?>
+    <p style="color: green;"><?= htmlspecialchars($message) ?></p>
+<?php endif; ?>
 
-        <label>Image :</label>
-        <input type="file" name="image" accept="image/*" required>
+<form action="" method="POST" enctype="multipart/form-data">
+    <label>Titre :</label><br>
+    <input type="text" name="titre" required><br><br>
 
-        <label>Catégorie :</label>
-        <select name="categorie" required>
-            <option value="" disabled selected>-- Choisir une catégorie --</option>
-            <option value="vetements">Vêtements</option>
-            <option value="electronique">Électronique</option>
-            <option value="maison">Maison</option>
-            <option value="autre">Autre</option>
-        </select>
+    <label>Description :</label><br>
+    <textarea name="description" required></textarea><br><br>
 
-        <button type="submit">Ajouter le produit</button>
-    </form>
-</body>
-</html>
+    <label>Prix (€) :</label><br>
+    <input type="number" step="0.01" name="prix" required><br><br>
+
+    <label>Catégorie :</label><br>
+    <select name="categorie" required>
+        <option value="">-- Sélectionner --</option>
+        <?php
+        $res = $pdo->query("SELECT * FROM categories ORDER BY nom");
+        while ($cat = $res->fetch()) {
+            echo "<option value='" . $cat['id'] . "'>" . htmlspecialchars($cat['nom']) . "</option>";
+        }
+        ?>
+    </select><br><br>
+
+    <label>Image :</label><br>
+    <input type="file" name="image" accept="image/*" required><br><br>
+
+    <button type="submit">Ajouter</button>
+</form>
+
+<?php include_once 'public/footer.php'; ?>

@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         elseif (!$stmt->fetch()) {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (nom, email, mot_de_passe,date_inscription) VALUES (?, ?, ?,NOW())");
             $stmt->execute([$username, $email, $hashed]);
             header('Location: connexion.php');
             exit;
