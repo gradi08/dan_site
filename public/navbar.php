@@ -6,6 +6,7 @@
   <title>VideGrenier+ | Donnez une nouvelle vie à vos objets</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/articles.css">
    <style>
         .article {
             border: 1px solid #ccc;
@@ -38,14 +39,15 @@
             <div class="dropdown">
               <p><strong><?= htmlspecialchars($_SESSION['user']['nom'] ?? 'Utilisateur') ?></strong></p>
               <p><strong><?= htmlspecialchars($_SESSION['user']['email'] ?? 'Email non défini') ?></strong></p>
-              <a href="ajouter-produit.php?">Tableau de bord</a>
+              <a href="ajouter-produit.php?">ajouter article</a>
+              <a href="panier.php?">panier</a>
               <a href="logout.php">Déconnexion</a>
             </div>
           </div>
         <?php else: ?>
           <a href="connexion.php">Connexion</a>
         <?php endif; ?>
-        <a href="mes_articles.php">Vendre</a>
+        <a href="mes_articles.php">Mes acticles</a>
       </div>
     </nav>
   </header>

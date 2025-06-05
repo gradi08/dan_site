@@ -1,0 +1,51 @@
+h2 {
+    text-align: center;
+    margin: 20px 0;
+    color: #333;
+}
+
+.article {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 320px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.article:hover {
+    transform: scale(1.05);
+}
+
+.article img {
+    border-radius: 10px;
+    max-width: 100%;
+    height: auto;
+}
+
+button {
+    background-color: #28a745;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #333;
+    color: white;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}

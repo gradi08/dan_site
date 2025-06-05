@@ -3,7 +3,7 @@ require 'includes/db.php';
 
 $nomCategorie = isset($_GET['nom']) ? htmlspecialchars($_GET['nom']) : '';
 
-$stmt = $pdo->prepare("SELECT * FROM produits WHERE categorie = ?");
+$stmt = $pdo->prepare("SELECT * FROM articles WHERE categorie = ?");
 $stmt->execute([$nomCategorie]);
 $produits = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
