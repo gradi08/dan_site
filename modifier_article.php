@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $prix = floatval($_POST['prix']);
     $categorie_id = intval($_POST['categorie']);
     $statut = $_POST['statut'] === 'publie' ? 'publie' : 'non_publie';
-    $image_name = $article['image']; // valeur par défaut
+    $image_name = $article['image']; // Valeur par défaut
 
     // Si nouvelle image envoyée
     if (!empty($_FILES['image']['name'])) {
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$titre, $description, $prix, $categorie_id, $image_name, $statut, $article_id, $user_id]);
 
         $message = "Article modifié avec succès.";
-        // Mise à jour de $article pour afficher les nouvelles valeurs dans le formulaire
+        // Mise à jour de $article
         $article = array_merge($article, [
             'titre' => $titre,
             'description' => $description,
@@ -59,46 +59,116 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <?php include_once 'public/navbar.php'; ?>
-<h2>Modifier l’article</h2>
 
-<?php if ($message): ?>
-    <p style="color: green;"><?= htmlspecialchars($message) ?></p>
-<?php endif; ?>
+<div class="container">
+    <h2>Modifier l’article</h2>
 
-<form action="" method="POST" enctype="multipart/form-data">
-    <label>Titre :</label><br>
-    <input type="text" name="titre" value="<?= htmlspecialchars($article['titre']) ?>" required><br><br>
+    <?php if ($message): ?>
+        <p class="message success"><?= htmlspecialchars($message) ?></p>
+    <?php endif; ?>
 
-    <label>Description :</label><br>
-    <textarea name="description" required><?= htmlspecialchars($article['description']) ?></textarea><br><br>
+    <form action="" method="POST" enctype="multipart/form-data" class="article-form">
+        <label>Titre :</label>
+        <input type="text" name="titre" value="<?= htmlspecialchars($article['titre']) ?>" required>
 
-    <label>Prix (€) :</label><br>
-    <input type="number" step="0.01" name="prix" value="<?= $article['prix'] ?>" required><br><br>
+        <label>Description :</label>
+        <textarea name="description" required><?= htmlspecialchars($article['description']) ?></textarea>
 
-    <label>Catégorie :</label><br>
-    <select name="categorie" required>
-        <?php
-        $res = $pdo->query("SELECT * FROM categories ORDER BY nom");
-        while ($cat = $res->fetch()) {
-            $selected = $cat['id'] == $article['categorie_id'] ? 'selected' : '';
-            echo "<option value='{$cat['id']}' $selected>" . htmlspecialchars($cat['nom']) . "</option>";
-        }
-        ?>
-    </select><br><br>
+        <label>Prix (€) :</label>
+        <input type="number" step="0.01" name="prix" value="<?= $article['prix'] ?>" required>
 
-    <label>Image actuelle :</label><br>
-    <img src="img/<?= htmlspecialchars($article['image']) ?>" alt="image" width="120"><br><br>
+        <label>Catégorie :</label>
+        <select name="categorie" required>
+            <?php
+            $res = $pdo->query("SELECT * FROM categories ORDER BY nom");
+            while ($cat = $res->fetch()) {
+                $selected = $cat['id'] == $article['categorie_id'] ? 'selected' : '';
+                echo "<option value='{$cat['id']}' $selected>" . htmlspecialchars($cat['nom']) . "</option>";
+            }
+            ?>
+        </select>
 
-    <label>Nouvelle image (facultatif) :</label><br>
-    <input type="file" name="image" accept="image/*"><br><br>
+        <label>Image actuelle :</label>
+        <img src="img/<?= htmlspecialchars($article['image']) ?>" alt="image" width="120">
 
-    <label>Statut :</label><br>
-    <select name="statut">
-        <option value="non_publie" <?= $article['statut'] === 'non_publie' ? 'selected' : '' ?>>Non publié</option>
-        <option value="publie" <?= $article['statut'] === 'publie' ? 'selected' : '' ?>>Publié</option>
-    </select><br><br>
+        <label>Nouvelle image (facultatif) :</label>
+        <input type="file" name="image" accept="image/*">
 
-    <button type="submit">Enregistrer</button>
-</form>
+        <label>Statut :</label>
+        <select name="statut">
+            <option value="non_publie" <?= $article['statut'] === 'non_publie' ? 'selected' : '' ?>>Non publié</option>
+            <option value="publie" <?= $article['statut'] === 'publie' ? 'selected' : '' ?>>Publié</option>
+        </select>
 
+        <button type="submit" class="btn">Enregistrer</button>
+    </form>
+</div>
+<style>
+    body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f7f7f7;
+    color: #333;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+}
+
+.message.success {
+    color: green;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.article-form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin: 10px 0 5px;
+}
+
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+input[type="file"] {
+    margin-bottom: 15px;
+}
+
+.btn {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+img {
+    margin: 10px 0;
+}
+</style>
 <?php include_once 'public/footer.php'; ?>
