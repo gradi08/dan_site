@@ -6,9 +6,8 @@ $user_id = $_SESSION['user']['id'];
 
 // Récupérer tous les articles de l'utilisateur
 $stmt = $pdo->prepare("
-    SELECT a.*, c.nom AS categorie_nom 
+    SELECT a.*
     FROM articles a 
-    JOIN categories c ON a.categorie_id = c.id 
     WHERE a.user_id = ? 
     ORDER BY a.date_creation DESC
 ");
@@ -24,7 +23,7 @@ $articles = $stmt->fetchAll();
     <?php if (empty($articles)): ?>
         <div class="no-articles">
             <p>Vous n’avez publié aucun article pour le moment.</p>
-            <a href="ajouter_article.php" class="btn btn-primary">Ajouter un Article</a>
+            <a href="ajouter-produit.php" class="btn btn-primary">Ajouter un Article</a>
         </div>
     <?php else: ?>
         <div class="articles-grid">
@@ -33,8 +32,7 @@ $articles = $stmt->fetchAll();
                     <img src="img/<?= htmlspecialchars($article['image']) ?>" alt="<?= htmlspecialchars($article['titre']) ?>" class="article-image"> 
                     <div class="article-info">
                         <h3><?= htmlspecialchars($article['titre']) ?></h3>
-                        <p><strong>Prix :</strong> <?= number_format($article['prix'], 2, ',', ' ') ?> €</p>
-                        <p><strong>Catégorie :</strong> <?= htmlspecialchars($article['categorie_nom']) ?></p>
+                        <h5><?= htmlspecialchars($article['description']) ?></h5>
                         <p><strong>Statut :</strong> 
                             <span class="status <?= $article['statut'] ?>">
                                 <?= ucfirst($article['statut']) ?>

@@ -33,6 +33,10 @@ if (isset($_GET['t'])) {
         <?php endif ?>
       </div>
       <div class="form-group">
+        <input type="tel" name="phone" placeholder="Numéro de téléphone" required>
+        <div class="error-message" id="error-phone">Numéro requis</div>
+      </div>
+      <div class="form-group">
         <input type="password" name="password" placeholder="Mot de passe" required>
         <div class="error-message" id="error-password">Min. 6 caractères</div>
       </div>

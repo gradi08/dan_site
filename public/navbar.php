@@ -31,8 +31,8 @@
     <nav>
       <div class="hamburger" id="hamburger">&#9776;</div>
       <div class="nav-links" id="nav-links">
-        <a href="#">Accueil</a>
-        <a href="categorie.php">Catégories</a>
+        <a href="index.php">Accueil</a>
+        <a href="articles.php">les arcticles</a>
         <?php if (isset($_SESSION['user'])): ?>
           <div class="profile-menu">
             <a href="#" class="profile-link">Profil ▼</a>
@@ -40,7 +40,6 @@
               <p><strong><?= htmlspecialchars($_SESSION['user']['nom'] ?? 'Utilisateur') ?></strong></p>
               <p><strong><?= htmlspecialchars($_SESSION['user']['email'] ?? 'Email non défini') ?></strong></p>
               <a href="ajouter-produit.php?">ajouter article</a>
-              <a href="panier.php?">panier</a>
               <a href="logout.php">Déconnexion</a>
             </div>
           </div>

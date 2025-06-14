@@ -25,8 +25,6 @@ $message = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $titre = trim($_POST['titre']);
     $description = trim($_POST['description']);
-    $prix = floatval($_POST['prix']);
-    $categorie_id = intval($_POST['categorie']);
     $statut = $_POST['statut'] === 'publie' ? 'publie' : 'non_publie';
     $image_name = $article['image']; // Valeur par défaut
 
@@ -42,16 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($message)) {
-        $stmt = $pdo->prepare("UPDATE articles SET titre = ?, description = ?, prix = ?, categorie_id = ?, image = ?, statut = ? WHERE id = ? AND user_id = ?");
-        $stmt->execute([$titre, $description, $prix, $categorie_id, $image_name, $statut, $article_id, $user_id]);
+        $stmt = $pdo->prepare("UPDATE articles SET titre = ?, description = ?, image = ?, statut = ? WHERE id = ? AND user_id = ?");
+        $stmt->execute([$titre, $description, $image_name, $statut, $article_id, $user_id]);
 
         $message = "Article modifié avec succès.";
         // Mise à jour de $article
         $article = array_merge($article, [
             'titre' => $titre,
             'description' => $description,
-            'prix' => $prix,
-            'categorie_id' => $categorie_id,
             'statut' => $statut,
             'image' => $image_name
         ]);
@@ -73,20 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <label>Description :</label>
         <textarea name="description" required><?= htmlspecialchars($article['description']) ?></textarea>
-
-        <label>Prix (€) :</label>
-        <input type="number" step="0.01" name="prix" value="<?= $article['prix'] ?>" required>
-
-        <label>Catégorie :</label>
-        <select name="categorie" required>
-            <?php
-            $res = $pdo->query("SELECT * FROM categories ORDER BY nom");
-            while ($cat = $res->fetch()) {
-                $selected = $cat['id'] == $article['categorie_id'] ? 'selected' : '';
-                echo "<option value='{$cat['id']}' $selected>" . htmlspecialchars($cat['nom']) . "</option>";
-            }
-            ?>
-        </select>
 
         <label>Image actuelle :</label>
         <img src="img/<?= htmlspecialchars($article['image']) ?>" alt="image" width="120">

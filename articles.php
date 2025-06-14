@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$stmt = $pdo->query("SELECT a.*, c.nom AS categorie_nom FROM articles a JOIN categories c ON a.categorie_id = c.id WHERE a.statut = 'publie'");
+$stmt = $pdo->query("SELECT a.* FROM articles a WHERE a.statut = 'publie'");
 $articles = $stmt->fetchAll();
 ?>
 <?php include_once 'public/navbar.php'; ?>
@@ -21,16 +21,13 @@ $articles = $stmt->fetchAll();
                     <img src="img/<?= htmlspecialchars($article['image']) ?>" alt="<?= htmlspecialchars($article['titre']) ?>" class="article-image">
                     <h3><?= htmlspecialchars($article['titre']) ?></h3>
                     <p><?= htmlspecialchars($article['description']) ?></p>
-                    <p><strong>Prix :</strong> <?= number_format($article['prix'], 2, ',', ' ') ?> €</p>
-                    <p><strong>Catégorie :</strong> <?= htmlspecialchars($article['categorie_nom']) ?></p>
-
                     <?php if (isset($_SESSION['user']['id'])): ?>
                         <form method="post" action="ajouter_panier.php">
                             <input type="hidden" name="article_id" value="<?= $article['id'] ?>">
-                            <button type="submit" class="btn">Ajouter au Panier</button>
+                            <button type="submit" class="btn">contacter</button>
                         </form>
                     <?php else: ?>
-                        <p><a href="connexion.php">Connecte-toi</a> pour acheter cet article.</p>
+                        <p><a href="connexion.php">Connecte-toi</a> pour...</p>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>

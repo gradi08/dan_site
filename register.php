@@ -6,6 +6,7 @@ require 'includes/db.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $email    = trim($_POST['email']);
+    $phone    = trim($_POST['phone']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
@@ -18,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         elseif (!$stmt->fetch()) {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (nom, email, mot_de_passe,date_inscription) VALUES (?, ?, ?,NOW())");
-            $stmt->execute([$username, $email, $hashed]);
+            $stmt = $pdo->prepare("INSERT INTO users (nom, email,Tel, mot_de_passe,date_inscription) VALUES (?,?, ?, ?,NOW())");
+            $stmt->execute([$username, $email,$phone, $hashed]);
             header('Location: connexion.php');
             exit;
         } else {
