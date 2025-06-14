@@ -4,7 +4,6 @@ require_once 'includes/db.php';
 
 $user_id = $_SESSION['user']['id'];
 
-// Récupérer tous les articles de l'utilisateur
 $stmt = $pdo->prepare("
     SELECT a.*
     FROM articles a 
@@ -18,12 +17,12 @@ $articles = $stmt->fetchAll();
 <?php include_once 'public/navbar.php'; ?>
 
 <div class="container">
-    <h2>Mes Articles</h2>
+    <h2 class="page-title">Mes Articles</h2>
 
     <?php if (empty($articles)): ?>
         <div class="no-articles">
             <p>Vous n’avez publié aucun article pour le moment.</p>
-            <a href="ajouter-produit.php" class="btn btn-primary">Ajouter un Article</a>
+            <a href="ajouter-produit.php" class="btn btn-primary">➕ Ajouter un Article</a>
         </div>
     <?php else: ?>
         <div class="articles-grid">
@@ -32,15 +31,16 @@ $articles = $stmt->fetchAll();
                     <img src="img/<?= htmlspecialchars($article['image']) ?>" alt="<?= htmlspecialchars($article['titre']) ?>" class="article-image"> 
                     <div class="article-info">
                         <h3><?= htmlspecialchars($article['titre']) ?></h3>
-                        <h5><?= htmlspecialchars($article['description']) ?></h5>
-                        <p><strong>Statut :</strong> 
-                            <span class="status <?= $article['statut'] ?>">
+                        <p class="desc"><?= htmlspecialchars($article['description']) ?></p>
+                        <p class="status-label">
+                            <strong>Statut :</strong> 
+                            <span class="status <?= strtolower($article['statut']) ?>">
                                 <?= ucfirst($article['statut']) ?>
                             </span>
                         </p>
                         <div class="article-actions">
-                            <a href="modifier_article.php?id=<?= $article['id'] ?>" class="btn btn-edit">Modifier</a>
-                            <a href="supprimer_article.php?id=<?= $article['id'] ?>" class="btn btn-delete" onclick="return confirm('Confirmer la suppression ?')">Supprimer</a>
+                            <a href="modifier_article.php?id=<?= $article['id'] ?>" class="btn btn-edit">✏️ Modifier</a>
+                            <a href="supprimer_article.php?id=<?= $article['id'] ?>" class="btn btn-delete" onclick="return confirm('Confirmer la suppression ?')">🗑️ Supprimer</a>
                         </div>
                     </div>
                 </div>
@@ -50,9 +50,9 @@ $articles = $stmt->fetchAll();
 </div>
 
 <style>
-    body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f7f7f7;
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f2f4f8;
     color: #333;
     margin: 0;
     padding: 0;
@@ -61,87 +61,117 @@ $articles = $stmt->fetchAll();
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 2rem;
 }
 
-h2 {
-    color: #333;
-    margin-bottom: 20px;
+.page-title {
     text-align: center;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: #2c3e50;
 }
 
 .articles-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
 }
 
 .article-card {
     background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
     overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .article-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
 .article-image {
     width: 100%;
-    height: 200px; /* Hauteur fixe pour uniformiser l'affichage */
-    object-fit: cover; /* Remplit le conteneur sans déformer l'image */
+    height: 200px;
+    object-fit: cover;
 }
 
 .article-info {
-    padding: 15px;
+    padding: 1rem 1.2rem;
+}
+
+.article-info h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.6rem;
+    color: #27ae60;
+}
+
+.article-info .desc {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    color: #555;
+}
+
+.status-label {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.status {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.status.publie {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status.prive, .status.privé {
+    background-color: #fff3cd;
+    color: #856404;
 }
 
 .article-actions {
-    margin-top: 15px; /* Espace entre les informations et les boutons */
     display: flex;
-    justify-content: space-between; /* Espace entre les boutons */
+    justify-content: space-between;
+    margin-top: 1rem;
 }
 
 .btn {
-    display: inline-block;
-    padding: 10px 15px;
-    border-radius: 4px;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: bold;
     text-decoration: none;
     color: white;
-    transition: background-color 0.3s;
+    transition: 0.3s;
+    font-size: 0.9rem;
 }
 
 .btn-primary {
-    background-color: #007bff;
+    background-color: #3498db;
 }
 
 .btn-edit {
-    background-color: #28a745;
+    background-color: #27ae60;
 }
 
 .btn-delete {
-    background-color: #dc3545;
+    background-color: #e74c3c;
 }
 
 .btn:hover {
     opacity: 0.9;
 }
 
-.status.publie {
-    color: green;
-}
-
-.status.privé {
-    color: orange;
-}
-
 .no-articles {
     text-align: center;
-    margin-top: 20px;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.05);
 }
 </style>
 

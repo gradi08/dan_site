@@ -4,9 +4,20 @@
 require 'includes/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $prefixe = "+243";// Préfixe pour le numéro de téléphone congolais
+    $Tel = trim($_POST['phone']);
+// Nettoyage pour enlever les espaces et caractères non numériques sauf +
+    $Tel = preg_replace('/\s+/', '', $Tel);
+// Vérifie s’il commence déjà par +243
+if (strpos($Tel, $prefixe) !== 0) {
+    if (substr($Tel, 0, 1) === "0") {
+        $Tel = substr($Tel, 1);
+    }
+    $Tel = $prefixe . $Tel;
+}
     $username = trim($_POST['username']);
     $email    = trim($_POST['email']);
-    $phone    = trim($_POST['phone']);
+    $phone = $Tel; // Bien formaté, prêt à être stocké
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
