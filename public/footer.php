@@ -1,5 +1,10 @@
 <footer>
-    © 2025 VideGrenier+. Tous droits réservés.
+    © 2025 VideGrenier+. Tous droits réservés. <br>
+    Design par <a href="#" style="color: green; text-decoration: none; ">Dan shidi</a> 
+    <style>
+    
+    </style>
+                
   </footer>
 
   <script>

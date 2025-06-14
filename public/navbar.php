@@ -35,11 +35,12 @@
         <a href="articles.php">les arcticles</a>
         <?php if (isset($_SESSION['user'])): ?>
           <div class="profile-menu">
-            <a href="#" class="profile-link">Profil ▼</a>
+            <a href="#" class="profile-link">Compte ▼</a>
             <div class="dropdown">
               <p><strong><?= htmlspecialchars($_SESSION['user']['nom'] ?? 'Utilisateur') ?></strong></p>
               <p><strong><?= htmlspecialchars($_SESSION['user']['email'] ?? 'Email non défini') ?></strong></p>
-              <a href="ajouter-produit.php?">ajouter article</a>
+              <a href="profils.php?">Mon profil</a>
+              <a href="ajouter-produit.php?">Ajouter article</a>
               <a href="logout.php">Déconnexion</a>
             </div>
           </div>
