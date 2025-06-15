@@ -276,6 +276,98 @@ a {
 .cta h2 {
   margin-bottom: 1.5rem;
 }
+/* Responsive Design */
+@media (max-width: 992px) {
+  .hero-content h1 {
+    font-size: 2.2rem;
+  }
+
+  .btn {
+    margin-top: 50px;
+    font-size: 1rem;
+  }
+
+  .features {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .features div {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .steps {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .steps div {
+    margin-bottom: 1.5rem;
+  }
+
+  .scroll-wrapper {
+    gap: 0.5rem;
+  }
+
+  .card {
+    flex: 0 0 240px;
+    padding: 0.8rem;
+  }
+
+  .card img {
+    height: 150px;
+  }
+
+  .container {
+    padding: 1.2rem;
+  }
+
+  .cta h2 {
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero {
+    height: auto;
+    padding: 4rem 1rem;
+    text-align: center;
+  }
+
+  .hero-content h1 {
+    font-size: 1.8rem;
+  }
+
+  .btn-lg {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+  }
+
+  .scroll-wrapper {
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .card {
+    flex: 0 0 90%;
+    margin-right: 1rem;
+  }
+
+  .about, .how-it-works, .cta {
+    padding: 3rem 1rem;
+  }
+
+  .steps strong {
+    font-size: 1.8rem;
+  }
+
+  #pour {
+    font-size: 1rem;
+  }
+}
 
 </style>
 <?php include_once 'public/footer.php'; ?>

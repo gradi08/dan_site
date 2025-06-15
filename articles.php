@@ -195,4 +195,70 @@ body {
     font-style: italic;
     margin-top: 2rem;
 }
+@media screen and (max-width: 992px) {
+    .main-title {
+        font-size: 2.2rem;
+    }
+
+    .main-desc {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .article-content h3 {
+        font-size: 1.1rem;
+    }
+
+    .article-content p {
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        padding: 8px 14px;
+        font-size: 0.95rem;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .intro-section {
+        padding: 2.5rem 1rem;
+        border-radius: 0;
+    }
+
+    .main-title {
+        font-size: 1.8rem;
+    }
+
+    .main-desc {
+        font-size: 0.95rem;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    .articles-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .article-image {
+        height: 180px;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    .article-content {
+        padding: 1rem;
+    }
+}
+
 </style>
