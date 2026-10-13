@@ -18,13 +18,22 @@ CREATE TABLE IF NOT EXISTS articles (
     category    TEXT NOT NULL DEFAULT 'autre',
     location    TEXT NULL,
     status      TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'given')),
-    image       TEXT NULL,
     created_at  TEXT NOT NULL,
     updated_at  TEXT NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS articles_status_created_idx ON articles (status, created_at);
 CREATE INDEX IF NOT EXISTS articles_user_idx ON articles (user_id);
+
+CREATE TABLE IF NOT EXISTS article_images (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    article_id INTEGER NOT NULL REFERENCES articles (id) ON DELETE CASCADE,
+    filename   TEXT NOT NULL,
+    position   INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS article_images_article_idx ON article_images (article_id, position);
 
 CREATE TABLE IF NOT EXISTS login_attempts (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,

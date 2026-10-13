@@ -1,5 +1,9 @@
 <?php
-/** @var array<string, mixed>|null $article */
+/**
+ * @var array<string, mixed>|null $article
+ * @var list<array{id: int, filename: string, position: int}> $images
+ */
+use App\Repository\ArticleRepository;
 use App\Support\Category;
 use App\Support\Status;
 
@@ -9,7 +13,7 @@ $this->set('title', $editing ? 'Modifier l\'annonce' : 'Donner un objet');
 $value = static fn (string $key, string $default = '') => old($key, $article[$key] ?? $default);
 $status = $value('status', Status::PUBLISHED);
 $action = $editing ? url('mes-annonces/' . $article['id']) : url('mes-annonces');
-$photo = $editing ? image_url($article['image']) : null;
+$max = ArticleRepository::MAX_IMAGES;
 
 $communes = ['Bandalungwa', 'Barumbu', 'Bumbu', 'Gombe', 'Kalamu', 'Kasa-Vubu', 'Kimbanseke', 'Kinshasa', 'Kintambo',
     'Kisenso', 'Lemba', 'Limete', 'Lingwala', 'Makala', 'Maluku', 'Masina', 'Matete', 'Mont-Ngafula', 'Ndjili',
@@ -24,18 +28,40 @@ $communes = ['Bandalungwa', 'Barumbu', 'Bumbu', 'Gombe', 'Kalamu', 'Kasa-Vubu', 
     <form class="form form--panel" method="post" action="<?= $action ?>" enctype="multipart/form-data">
         <?= csrf_field() ?>
 
-        <div class="field">
-            <span class="label" id="image-label">Photo</span>
-            <label class="dropzone<?= $photo ? ' has-image' : '' ?>" for="image">
-                <img class="dropzone__preview" src="<?= e($photo ?? '') ?>" alt="" <?= $photo ? '' : 'hidden' ?>>
+        <fieldset class="field photos" data-max="<?= $max ?>" data-existing="<?= count($images) ?>">
+            <legend>Photos <span class="optional">(1 obligatoire, <?= $max ?> maximum)</span></legend>
+            <p class="field__hint">Les annonces avec 3 photos partent plus vite : vue d'ensemble, détail, défaut éventuel.</p>
+
+            <?php if ($images): ?>
+                <ul class="photo-grid" role="list">
+                    <?php foreach ($images as $image): ?>
+                        <li class="photo-tile">
+                            <img src="<?= e(image_url($image['filename'])) ?>" alt="" width="200" height="150" loading="lazy">
+                            <label class="photo-tile__cover">
+                                <input type="radio" name="cover" value="<?= $image['id'] ?>" <?= $image['position'] === 0 ? 'checked' : '' ?>>
+                                Photo principale
+                            </label>
+                            <label class="photo-tile__remove">
+                                <input type="checkbox" name="remove[]" value="<?= $image['id'] ?>" data-remove-photo>
+                                Retirer
+                            </label>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+
+            <ul class="photo-grid photo-grid--new" role="list" data-previews hidden></ul>
+
+            <label class="dropzone" for="images">
                 <span class="dropzone__text">
-                    <strong><?= $photo ? 'Changer la photo' : 'Choisir une photo' ?></strong>
-                    JPG, PNG ou WebP, 5 Mo maximum
+                    <strong data-dropzone-label><?= $images ? 'Ajouter des photos' : 'Choisir des photos' ?></strong>
+                    <span data-dropzone-count>JPG, PNG ou WebP, 5 Mo maximum par photo</span>
                 </span>
             </label>
-            <input class="visually-hidden" id="image" type="file" name="image" accept="image/jpeg,image/png,image/webp" aria-labelledby="image-label" <?= $editing ? '' : 'required' ?> <?= field_attrs('image') ?>>
-            <?= field_error('image') ?>
-        </div>
+            <input class="visually-hidden" id="images" type="file" name="images[]" multiple
+                   accept="image/jpeg,image/png,image/webp" <?= $images ? '' : 'required' ?> <?= field_attrs('images') ?>>
+            <?= field_error('images') ?>
+        </fieldset>
 
         <div class="field">
             <label for="title">Titre</label>

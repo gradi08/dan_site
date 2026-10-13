@@ -22,10 +22,27 @@ $firstName = explode(' ', trim($article['owner_name']))[0];
 
     <article class="detail">
         <div class="detail__media">
-            <?php if ($src = image_url($article['image'])): ?>
-                <img src="<?= e($src) ?>" alt="<?= e($article['title']) ?>" width="800" height="600" fetchpriority="high">
+            <div class="gallery">
+                <div class="gallery__track" tabindex="0" aria-label="Photos de l'objet<?= count($images) > 1 ? ', faites défiler' : '' ?>">
+                    <?php foreach ($images as $i => $image): ?>
+                        <img id="photo-<?= $i + 1 ?>" class="gallery__slide"
+                             src="<?= e(image_url($image['filename'])) ?>"
+                             alt="<?= e($article['title']) ?><?= count($images) > 1 ? ', photo ' . ($i + 1) . ' sur ' . count($images) : '' ?>"
+                             width="800" height="600" <?= $i === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>>
+                    <?php endforeach; ?>
+                </div>
+                <span class="sticker sticker--lg" aria-hidden="true"><?= $given ? 'Donné' : 'Gratuit' ?></span>
+            </div>
+
+            <?php if (count($images) > 1): ?>
+                <nav class="gallery__thumbs" aria-label="Choisir une photo">
+                    <?php foreach ($images as $i => $image): ?>
+                        <a href="#photo-<?= $i + 1 ?>" <?= $i === 0 ? 'aria-current="true"' : '' ?>>
+                            <img src="<?= e(image_url($image['filename'])) ?>" alt="Photo <?= $i + 1 ?>" width="96" height="72" loading="lazy">
+                        </a>
+                    <?php endforeach; ?>
+                </nav>
             <?php endif; ?>
-            <span class="sticker sticker--lg" aria-hidden="true"><?= $given ? 'Donné' : 'Gratuit' ?></span>
         </div>
 
         <div class="detail__body">

@@ -43,6 +43,7 @@ final class ArticleController extends Controller
 
         return $this->view('pages/articles/show', [
             'article' => $article,
+            'images'  => $this->app->articles()->images($id),
             'isOwner' => $this->app->auth()->id() === (int) $article['user_id'],
         ]);
     }

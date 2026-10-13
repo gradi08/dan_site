@@ -15,6 +15,7 @@
 - **Catalogue public** : recherche plein texte (titre, description, commune), filtres par catégorie, pagination, fiches objets avec balises Open Graph pour le partage.
 - **Contact WhatsApp en un clic** avec message pré-rempli. Les numéros ne sont visibles que par les membres connectés (anti-démarchage).
 - **Espace donneur** : publier, modifier, passer en brouillon, **marquer comme donné**, supprimer (avec confirmation).
+- **Jusqu'à 5 photos par annonce** (1 obligatoire) : choix de la photo principale, retrait, galerie à faire défiler au doigt sur la fiche objet. Les photos sont **réduites dans le navigateur avant l'envoi** (moins de données mobiles, envoi plus rapide).
 - **Comptes** : inscription, connexion, profil, changement de mot de passe, normalisation des numéros au format international (+243).
 - **Interface** responsive (mobile d'abord), thème clair/sombre automatique, accessible au clavier et aux lecteurs d'écran, fonctionne sans JavaScript.
 
@@ -34,7 +35,7 @@ src/
 config/            Configuration et table de routage
 views/             Templates PHP (layout + pages + partials)
 database/          Schémas MySQL et SQLite, migration depuis la v1
-tests/             PHPUnit (30 tests)
+tests/             PHPUnit (38 tests)
 ```
 
 **Choix notables**
@@ -44,6 +45,7 @@ tests/             PHPUnit (30 tests)
 | Base de données | MySQL/MariaDB en production, **SQLite en local** (zéro configuration). Requêtes portables, schéma InnoDB avec clés étrangères et index. |
 | Routage | URL propres (`/objets/12`, `/mes-annonces/nouvelle`), redirections 301 depuis les anciennes URL `*.php`. |
 | Formulaires | Pattern Post/Redirect/Get, erreurs et saisies conservées en session flash, validation côté serveur et côté navigateur (`:user-invalid` + `aria-invalid`). |
+| Photos | Table `article_images` (une annonce → plusieurs photos ordonnées). Envoi « tout ou rien » : si une photo ou l'écriture en base échoue, les fichiers déjà écrits sont supprimés (transaction + nettoyage). |
 | Déploiement | Fonctionne avec ou sans Composer (autoloader PSR-4 de secours), avec Apache, le serveur PHP intégré ou Docker. |
 
 ## Sécurité
@@ -95,7 +97,7 @@ La CI GitHub Actions exécute le lint, les tests sur PHP 8.1 et 8.3, puis un tes
 3. Créer un fichier `.env` à partir de `.env.example` avec `APP_ENV=production`, `APP_DEBUG=false`, `DB_DRIVER=mysql` et les identifiants de la base.
 4. Si la racine web ne peut pas pointer sur `public/`, le `.htaccess` à la racine s'en charge et bloque l'accès au reste.
 
-**Mise à jour depuis la v1** (anciennes tables `users`/`articles`) : sauvegarder la base, exécuter `database/migrations/001_from_legacy_v1.sql`, puis copier l'ancien dossier `img/` vers `public/uploads/`. Les comptes et mots de passe existants sont conservés.
+**Mise à jour depuis la v1** (anciennes tables `users`/`articles`) : sauvegarder la base, exécuter `database/migrations/001_from_legacy_v1.sql`, puis copier l'ancien dossier `img/` vers `public/uploads/`. Les comptes et mots de passe existants sont conservés, et la photo de chaque ancienne annonce devient sa photo principale.
 
 ### Docker (Render, Railway, Fly.io…)
 

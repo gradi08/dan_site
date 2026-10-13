@@ -40,7 +40,6 @@ final class ArticleRepositoryTest extends TestCase
             'category'    => $category,
             'location'    => 'Gombe',
             'status'      => $status,
-            'image'       => null,
         ]);
     }
 
@@ -124,6 +123,79 @@ final class ArticleRepositoryTest extends TestCase
     {
         $this->make($this->alice, 'A');
         $this->db->prepare('DELETE FROM users WHERE id = ?')->execute([$this->alice]);
+
+        self::assertSame(0, (int) $this->db->query('SELECT COUNT(*) FROM articles')->fetchColumn());
+    }
+
+    public function testCoverIsFirstImageByPosition(): void
+    {
+        $id = $this->make($this->alice, 'Avec photos');
+        $this->articles->addImages($id, ['a.jpg', 'b.jpg', 'c.jpg']);
+
+        self::assertSame(['a.jpg', 'b.jpg', 'c.jpg'], array_column($this->articles->images($id), 'filename'));
+        self::assertSame('a.jpg', $this->articles->findPublic($id)['image']);
+        self::assertSame('a.jpg', $this->articles->latest(1)[0]['image']);
+    }
+
+    public function testReorderPutsChosenCoverFirstAndKeepsOthersInOrder(): void
+    {
+        $id = $this->make($this->alice, 'Avec photos');
+        $this->articles->addImages($id, ['a.jpg', 'b.jpg', 'c.jpg']);
+        $c = $this->articles->images($id)[2]['id'];
+
+        $this->articles->reorder($id, $c);
+
+        $images = $this->articles->images($id);
+        self::assertSame(['c.jpg', 'a.jpg', 'b.jpg'], array_column($images, 'filename'));
+        self::assertSame([0, 1, 2], array_column($images, 'position'));
+        self::assertSame('c.jpg', $this->articles->findOwned($id, $this->alice)['image']);
+    }
+
+    public function testRemoveImagesIgnoresImagesOfOtherArticles(): void
+    {
+        $mine = $this->make($this->alice, 'À moi');
+        $theirs = $this->make($this->bob, 'À Bob');
+        $this->articles->addImages($mine, ['a.jpg', 'b.jpg']);
+        $this->articles->addImages($theirs, ['bob.jpg']);
+        $bobImage = $this->articles->images($theirs)[0]['id'];
+        $a = $this->articles->images($mine)[0]['id'];
+
+        $removed = $this->articles->removeImages($mine, [$a, $bobImage]);
+
+        self::assertSame(['a.jpg'], $removed);
+        self::assertSame(['b.jpg'], array_column($this->articles->images($mine), 'filename'));
+        self::assertSame([0], array_column($this->articles->images($mine), 'position'));
+        self::assertCount(1, $this->articles->images($theirs));
+    }
+
+    public function testAddImagesAppendsAfterExistingOnes(): void
+    {
+        $id = $this->make($this->alice, 'Photos');
+        $this->articles->addImages($id, ['a.jpg']);
+        $this->articles->addImages($id, ['b.jpg', 'c.jpg']);
+
+        self::assertSame([0, 1, 2], array_column($this->articles->images($id), 'position'));
+    }
+
+    public function testDeletingArticleCascadesToImages(): void
+    {
+        $id = $this->make($this->alice, 'Photos');
+        $this->articles->addImages($id, ['a.jpg', 'b.jpg']);
+
+        $this->articles->delete($id, $this->alice);
+
+        self::assertSame(0, (int) $this->db->query('SELECT COUNT(*) FROM article_images')->fetchColumn());
+    }
+
+    public function testTransactionRollsBackOnFailure(): void
+    {
+        try {
+            $this->articles->transaction(function (): void {
+                $this->make($this->alice, 'Annulé');
+                throw new \RuntimeException('échec');
+            });
+        } catch (\RuntimeException) {
+        }
 
         self::assertSame(0, (int) $this->db->query('SELECT COUNT(*) FROM articles')->fetchColumn());
     }

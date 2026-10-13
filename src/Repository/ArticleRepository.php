@@ -9,8 +9,14 @@ use PDO;
 
 final class ArticleRepository
 {
+    public const MAX_IMAGES = 5;
+
+    /** Photo principale = la photo de position la plus basse. */
+    private const COVER = '(SELECT i.filename FROM article_images i WHERE i.article_id = a.id
+        ORDER BY i.position, i.id LIMIT 1) AS image';
+
     private const PUBLIC_COLUMNS = 'a.id, a.user_id, a.title, a.description, a.category, a.location,
-        a.status, a.image, a.created_at, a.updated_at, u.name AS owner_name, u.phone AS owner_phone';
+        a.status, a.created_at, a.updated_at, u.name AS owner_name, u.phone AS owner_phone, ' . self::COVER;
 
     public function __construct(private readonly PDO $db)
     {
@@ -82,7 +88,7 @@ final class ArticleRepository
     /** @return array<string, mixed>|null Seulement si l'annonce appartient à l'utilisateur. */
     public function findOwned(int $id, int $userId): ?array
     {
-        $stmt = $this->db->prepare('SELECT * FROM articles WHERE id = ? AND user_id = ?');
+        $stmt = $this->db->prepare('SELECT a.*, ' . self::COVER . ' FROM articles a WHERE a.id = ? AND a.user_id = ?');
         $stmt->execute([$id, $userId]);
 
         return $stmt->fetch() ?: null;
@@ -91,7 +97,9 @@ final class ArticleRepository
     /** @return list<array<string, mixed>> */
     public function forUser(int $userId): array
     {
-        $stmt = $this->db->prepare('SELECT * FROM articles WHERE user_id = ? ORDER BY created_at DESC, id DESC');
+        $stmt = $this->db->prepare(
+            'SELECT a.*, ' . self::COVER . ' FROM articles a WHERE a.user_id = ? ORDER BY a.created_at DESC, a.id DESC'
+        );
         $stmt->execute([$userId]);
 
         return $stmt->fetchAll();
@@ -129,32 +137,32 @@ final class ArticleRepository
         ];
     }
 
-    /** @param array{title: string, description: string, category: string, location: ?string, status: string, image: ?string} $data */
+    /** @param array{title: string, description: string, category: string, location: ?string, status: string} $data */
     public function create(int $userId, array $data): int
     {
         $now = date('Y-m-d H:i:s');
         $stmt = $this->db->prepare(
-            'INSERT INTO articles (user_id, title, description, category, location, status, image, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO articles (user_id, title, description, category, location, status, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $userId, $data['title'], $data['description'], $data['category'],
-            $data['location'], $data['status'], $data['image'], $now, $now,
+            $data['location'], $data['status'], $now, $now,
         ]);
 
         return (int) $this->db->lastInsertId();
     }
 
-    /** @param array{title: string, description: string, category: string, location: ?string, status: string, image: ?string} $data */
+    /** @param array{title: string, description: string, category: string, location: ?string, status: string} $data */
     public function update(int $id, int $userId, array $data): void
     {
         $stmt = $this->db->prepare(
-            'UPDATE articles SET title = ?, description = ?, category = ?, location = ?, status = ?, image = ?, updated_at = ?
+            'UPDATE articles SET title = ?, description = ?, category = ?, location = ?, status = ?, updated_at = ?
              WHERE id = ? AND user_id = ?'
         );
         $stmt->execute([
             $data['title'], $data['description'], $data['category'], $data['location'],
-            $data['status'], $data['image'], date('Y-m-d H:i:s'), $id, $userId,
+            $data['status'], date('Y-m-d H:i:s'), $id, $userId,
         ]);
     }
 
@@ -168,5 +176,84 @@ final class ArticleRepository
     {
         $stmt = $this->db->prepare('DELETE FROM articles WHERE id = ? AND user_id = ?');
         $stmt->execute([$id, $userId]);
+    }
+
+    // ---------- Photos ----------
+
+    /** @return list<array{id: int, filename: string, position: int}> Photo principale en premier. */
+    public function images(int $articleId): array
+    {
+        $stmt = $this->db->prepare(
+            'SELECT id, filename, position FROM article_images WHERE article_id = ? ORDER BY position, id'
+        );
+        $stmt->execute([$articleId]);
+
+        return array_map(static fn (array $row) => [
+            'id'       => (int) $row['id'],
+            'filename' => (string) $row['filename'],
+            'position' => (int) $row['position'],
+        ], $stmt->fetchAll());
+    }
+
+    /** @param list<string> $filenames Ajoutées à la suite des photos existantes. */
+    public function addImages(int $articleId, array $filenames): void
+    {
+        $next = count($this->images($articleId));
+        $stmt = $this->db->prepare(
+            'INSERT INTO article_images (article_id, filename, position, created_at) VALUES (?, ?, ?, ?)'
+        );
+        foreach ($filenames as $filename) {
+            $stmt->execute([$articleId, $filename, $next++, date('Y-m-d H:i:s')]);
+        }
+    }
+
+    /**
+     * Retire des photos de l'annonce (ids étrangers à l'annonce ignorés).
+     *
+     * @param list<int> $imageIds
+     * @return list<string> Fichiers à supprimer du disque.
+     */
+    public function removeImages(int $articleId, array $imageIds): array
+    {
+        $removed = [];
+        foreach ($this->images($articleId) as $image) {
+            if (in_array($image['id'], $imageIds, true)) {
+                $this->db->prepare('DELETE FROM article_images WHERE id = ? AND article_id = ?')
+                    ->execute([$image['id'], $articleId]);
+                $removed[] = $image['filename'];
+            }
+        }
+        $this->reorder($articleId, null);
+
+        return $removed;
+    }
+
+    /** Place la photo choisie en tête et renumérote les positions de 0 à n-1. */
+    public function reorder(int $articleId, ?int $coverId): void
+    {
+        $images = $this->images($articleId);
+        usort($images, static fn ($a, $b) => ($b['id'] === $coverId) <=> ($a['id'] === $coverId));
+
+        $stmt = $this->db->prepare('UPDATE article_images SET position = ? WHERE id = ? AND article_id = ?');
+        foreach ($images as $position => $image) {
+            if ($image['position'] !== $position) {
+                $stmt->execute([$position, $image['id'], $articleId]);
+            }
+        }
+    }
+
+    /** @param callable(): mixed $callback */
+    public function transaction(callable $callback): mixed
+    {
+        $this->db->beginTransaction();
+        try {
+            $result = $callback();
+            $this->db->commit();
+
+            return $result;
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 }

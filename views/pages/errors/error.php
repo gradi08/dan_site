@@ -7,6 +7,7 @@
     404     => ['Page introuvable', "Cette page n'existe pas ou plus. L'objet a peut-être été retiré par son donneur."],
     403     => ['Accès refusé', "Vous n'avez pas accès à cette page."],
     405     => ['Action non autorisée', "Cette action n'est pas disponible à cette adresse."],
+    413     => ['Envoi trop volumineux', 'Réessayez avec des fichiers plus légers.'],
     419     => ['Session expirée', 'Rechargez la page et réessayez.'],
     default => ['Un problème est survenu', "Le serveur n'a pas pu traiter la demande. Réessayez dans un instant."],
 };

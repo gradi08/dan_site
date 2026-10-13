@@ -44,7 +44,7 @@ final class Response
             'Permissions-Policy'      => 'camera=(), microphone=(), geolocation=()',
             'Content-Security-Policy' => implode('; ', [
                 "default-src 'self'",
-                "img-src 'self' data: https://images.unsplash.com",
+                "img-src 'self' data: blob: https://images.unsplash.com",
                 "style-src 'self' https://fonts.googleapis.com",
                 "font-src https://fonts.gstatic.com",
                 "script-src 'self'",

@@ -85,6 +85,10 @@ final class Router
     {
         $app = App::get();
 
+        if ($request->exceedsPostMaxSize()) {
+            throw new HttpException(413, 'Les photos envoyées sont trop lourdes. Réessayez avec moins de photos ou des images plus légères.');
+        }
+
         if ($request->isPost() && !$app->csrf()->validate($request->input('_token'))) {
             throw new HttpException(419, 'Votre session a expiré. Rechargez la page et réessayez.');
         }

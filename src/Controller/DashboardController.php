@@ -8,6 +8,7 @@ use App\Core\Validator;
 use App\Http\HttpException;
 use App\Http\Request;
 use App\Http\Response;
+use App\Repository\ArticleRepository;
 use App\Service\UploadException;
 use App\Support\Category;
 use App\Support\Status;
@@ -34,28 +35,37 @@ final class DashboardController extends Controller
 
     public function create(Request $request): Response
     {
-        return $this->view('pages/dashboard/form', ['article' => null]);
+        return $this->view('pages/dashboard/form', ['article' => null, 'images' => []]);
     }
 
     public function store(Request $request): Response
     {
         [$data, $validator] = $this->validate($request);
-        $file = $request->file('image');
+        $files = $request->files('images');
+        $back = 'mes-annonces/nouvelle';
 
-        if ($file === null) {
-            $validator->addError('image', 'Ajoutez une photo : les annonces avec photo partent bien plus vite.');
-        }
+        $this->validateImageCount($validator, 0, count($files));
         if ($validator->fails()) {
-            return $this->backWithErrors('mes-annonces/nouvelle', $validator->errors(), $data);
+            return $this->backWithErrors($back, $validator->errors(), $data);
         }
 
         try {
-            $data['image'] = $this->app->uploader()->store($file);
+            $stored = $this->storeImages($files);
         } catch (UploadException $e) {
-            return $this->backWithErrors('mes-annonces/nouvelle', ['image' => $e->getMessage()], $data);
+            return $this->backWithErrors($back, ['images' => $e->getMessage()], $data);
         }
 
-        $this->app->articles()->create($this->userId(), $data);
+        $articles = $this->app->articles();
+        try {
+            $articles->transaction(function () use ($articles, $data, $stored): void {
+                $id = $articles->create($this->userId(), $data);
+                $articles->addImages($id, $stored);
+            });
+        } catch (\Throwable $e) {
+            $this->deleteFiles($stored);
+            throw $e;
+        }
+
         $this->success($data['status'] === Status::PUBLISHED
             ? 'Annonce publiée. Elle est visible par tous dès maintenant.'
             : 'Brouillon enregistré. Publiez-le quand vous êtes prêt.');
@@ -65,34 +75,51 @@ final class DashboardController extends Controller
 
     public function edit(Request $request, int $id): Response
     {
-        return $this->view('pages/dashboard/form', ['article' => $this->owned($id)]);
+        return $this->view('pages/dashboard/form', [
+            'article' => $this->owned($id),
+            'images'  => $this->app->articles()->images($id),
+        ]);
     }
 
     public function update(Request $request, int $id): Response
     {
-        $article = $this->owned($id);
+        $this->owned($id);
         [$data, $validator] = $this->validate($request);
         $back = "mes-annonces/$id/modifier";
+        $articles = $this->app->articles();
 
+        $existing = array_column($articles->images($id), 'id');
+        $remove = array_values(array_intersect($existing, array_map('intval', (array) $request->input('remove', []))));
+        $cover = (int) $request->input('cover', 0);
+        $files = $request->files('images');
+
+        $this->validateImageCount($validator, count($existing) - count($remove), count($files));
         if ($validator->fails()) {
             return $this->backWithErrors($back, $validator->errors(), $data);
         }
 
-        $data['image'] = $article['image'];
-        if ($file = $request->file('image')) {
-            try {
-                $data['image'] = $this->app->uploader()->store($file);
-            } catch (UploadException $e) {
-                return $this->backWithErrors($back, ['image' => $e->getMessage()], $data);
-            }
+        try {
+            $stored = $this->storeImages($files);
+        } catch (UploadException $e) {
+            return $this->backWithErrors($back, ['images' => $e->getMessage()], $data);
         }
 
-        $this->app->articles()->update($id, $this->userId(), $data);
+        try {
+            $removed = $articles->transaction(function () use ($articles, $id, $data, $remove, $stored, $cover): array {
+                $articles->update($id, $this->userId(), $data);
+                $removed = $articles->removeImages($id, $remove);
+                $articles->addImages($id, $stored);
+                $articles->reorder($id, in_array($cover, $remove, true) ? null : $cover);
 
-        if ($data['image'] !== $article['image']) {
-            $this->app->uploader()->delete($article['image']);
+                return $removed;
+            });
+        } catch (\Throwable $e) {
+            $this->deleteFiles($stored);
+            throw $e;
         }
 
+        // Fichiers supprimés du disque seulement une fois la base à jour.
+        $this->deleteFiles($removed);
         $this->success('Modifications enregistrées.');
 
         return $this->redirect('mes-annonces');
@@ -119,13 +146,60 @@ final class DashboardController extends Controller
 
     public function destroy(Request $request, int $id): Response
     {
-        $article = $this->owned($id);
+        $this->owned($id);
+        $articles = $this->app->articles();
+        $files = array_column($articles->images($id), 'filename');
 
-        $this->app->articles()->delete($id, $this->userId());
-        $this->app->uploader()->delete($article['image']);
+        $articles->delete($id, $this->userId());
+        $this->deleteFiles($files);
         $this->success('Annonce supprimée.');
 
         return $this->redirect('mes-annonces');
+    }
+
+    private function validateImageCount(Validator $validator, int $kept, int $added): void
+    {
+        $total = $kept + $added;
+        $max = ArticleRepository::MAX_IMAGES;
+
+        if ($total < 1) {
+            $validator->addError('images', 'Ajoutez au moins une photo : les annonces avec photo partent bien plus vite.');
+        } elseif ($total > $max) {
+            $validator->addError('images', $kept > 0
+                ? sprintf('%d photos maximum : vous en avez déjà %d, vous pouvez en ajouter %d.', $max, $kept, max(0, $max - $kept))
+                : sprintf('%d photos maximum par annonce. Retirez-en %d.', $max, $total - $max));
+        }
+    }
+
+    /**
+     * Enregistre toutes les photos ou aucune : en cas d'échec, celles déjà écrites sont supprimées.
+     *
+     * @param list<array<string, mixed>> $files
+     * @return list<string>
+     * @throws UploadException
+     */
+    private function storeImages(array $files): array
+    {
+        $stored = [];
+        try {
+            foreach ($files as $file) {
+                $stored[] = $this->app->uploader()->store($file);
+            }
+        } catch (UploadException $e) {
+            $this->deleteFiles($stored);
+            $name = (string) ($file['name'] ?? '');
+            throw new UploadException(($name !== '' ? "« $name » : " : '') . $e->getMessage());
+        }
+
+        return $stored;
+    }
+
+    /** @param list<string> $filenames */
+    private function deleteFiles(array $filenames): void
+    {
+        foreach ($filenames as $filename) {
+            $this->app->uploader()->delete($filename);
+        }
     }
 
     /** @return array<string, mixed> */

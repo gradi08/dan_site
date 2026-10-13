@@ -108,6 +108,44 @@ final class Request
         return is_array($file) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE ? $file : null;
     }
 
+    /**
+     * Fichiers d'un champ multiple (name="images[]"), au format d'une entrée $_FILES par fichier.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function files(string $key): array
+    {
+        $raw = $this->files[$key] ?? null;
+        if (!is_array($raw) || !is_array($raw['name'] ?? null)) {
+            return ($file = $this->file($key)) ? [$file] : [];
+        }
+
+        $files = [];
+        foreach (array_keys($raw['name']) as $i) {
+            if (($raw['error'][$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+            $files[] = [
+                'name'     => $raw['name'][$i],
+                'type'     => $raw['type'][$i] ?? '',
+                'tmp_name' => $raw['tmp_name'][$i] ?? '',
+                'error'    => $raw['error'][$i],
+                'size'     => $raw['size'][$i] ?? 0,
+            ];
+        }
+
+        return $files;
+    }
+
+    /** Vrai si PHP a rejeté le corps de la requête car il dépasse post_max_size. */
+    public function exceedsPostMaxSize(): bool
+    {
+        return $this->method === 'POST'
+            && $this->body === []
+            && $this->files === []
+            && (int) ($this->server['CONTENT_LENGTH'] ?? 0) > 0;
+    }
+
     public function ip(): string
     {
         return (string) ($this->server['REMOTE_ADDR'] ?? '0.0.0.0');

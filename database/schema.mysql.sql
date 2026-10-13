@@ -21,13 +21,23 @@ CREATE TABLE IF NOT EXISTS articles (
     category    VARCHAR(30)   NOT NULL DEFAULT 'autre',
     location    VARCHAR(80)   NULL,
     status      ENUM('draft', 'published', 'given') NOT NULL DEFAULT 'draft',
-    image       VARCHAR(255)  NULL,
     created_at  DATETIME      NOT NULL,
     updated_at  DATETIME      NOT NULL,
     PRIMARY KEY (id),
     KEY articles_status_created_idx (status, created_at),
     KEY articles_user_idx (user_id),
     CONSTRAINT articles_user_fk FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS article_images (
+    id         INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+    article_id INT UNSIGNED     NOT NULL,
+    filename   VARCHAR(255)     NOT NULL,
+    position   TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    created_at DATETIME         NOT NULL,
+    PRIMARY KEY (id),
+    KEY article_images_article_idx (article_id, position),
+    CONSTRAINT article_images_article_fk FOREIGN KEY (article_id) REFERENCES articles (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS login_attempts (
