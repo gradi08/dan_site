@@ -1,0 +1,11 @@
+# Pour les hébergeurs où la racine web ne peut pas pointer sur /public
+# (InfinityFree, hébergement mutualisé…) : tout est redirigé vers /public,
+# le code source, la config et la base restent inaccessibles depuis le web.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(\.env|\.git|composer\.(json|lock)|src|config|views|database|storage|bin|tests|vendor)(/|$) - [F,L]
+    RewriteCond %{REQUEST_URI} !/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
