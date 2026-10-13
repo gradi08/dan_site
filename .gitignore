@@ -1,0 +1,12 @@
+/vendor/
+/.env
+/storage/*
+!/storage/.gitkeep
+/public/uploads/*
+!/public/uploads/.htaccess
+!/public/uploads/.gitkeep
+/.phpunit.cache/
+.DS_Store
+Thumbs.db
+/.phpunit.result.cache
+/.claude/

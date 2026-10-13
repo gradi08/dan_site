@@ -1,0 +1,34 @@
+{
+    "name": "gradi08/videgrenier",
+    "description": "VideGrenier+ — plateforme de dons d'objets entre particuliers.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-fileinfo": "*",
+        "ext-gd": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "serve": "php -S localhost:8000 -t public public/index.php",
+        "db:setup": "php bin/setup.php",
+        "db:seed": "php bin/setup.php --seed",
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
